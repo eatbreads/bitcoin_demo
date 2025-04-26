@@ -10,14 +10,25 @@
 - 命令行界面
 
 
-## 阶段性导航
-### 加入工作量证明
-([eb822486](https://github.com/eatbreads/bitcoin_demo/commit/eb822486))
+## 开发阶段
 
+1. part1: Basic Prototype     `基本原型`              
+   [初始提交](https://github.com/eatbreads/bitcoin_demo/tree/initial)
+   - 实现区块结构
+   - 实现基础区块链
+   - 创世区块生成
 
-### 加入数据持久化和命令行交互
-([8880dd2](https://github.com/eatbreads/bitcoin_demo/commit/8880dd2))
-eb822486
+2. part2: Proof-of-Work      `工作量证明`            
+   [commit eb822486](https://github.com/eatbreads/bitcoin_demo/tree/eb822486)
+   - 实现工作量证明算法
+   - 添加挖矿功能
+   - 区块哈希计算
+
+3. part3: Persistence and CLI `持久化和命令行`  
+   [commit 8880dd2](https://github.com/eatbreads/bitcoin_demo/tree/8880dd2)
+   - 使用 sled 实现数据持久化
+   - 添加命令行交互界面
+   - 实现区块链遍历功能
 
 
 ## 使用方法
