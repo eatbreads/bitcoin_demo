@@ -19,10 +19,10 @@ impl Cli {
             .version("0.1")
             .author("yunwei37. 1067852565@qq.com")
             .about("reimplement blockchain_go in rust: a simple blockchain for learning")
-            .subcommand(App::new("printchain").about("print all the chain blocks"))
+            .subcommand(App::new("printchain").about("打印所有区块 print all the chain blocks"))
             .subcommand(
                 App::new("addblock")
-                    .about("add a block in the blockchain")
+                    .about("用于添加区块  add a block in the blockchain")
                     .arg(Arg::from_usage("<data> 'the blockchain data'")),
             )
             .get_matches();
