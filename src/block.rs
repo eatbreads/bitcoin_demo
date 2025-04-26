@@ -4,11 +4,12 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use std::time::{SystemTime, UNIX_EPOCH, Duration};  // 合并所有 time 相关导入
 use chrono::{DateTime, Utc};
-
+use serde::{Deserialize, Serialize};
+use std::fmt;  // 添加这行
 
 const TARGET_HEXS: usize = 6;
 /// Block keeps block headers
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Block {
     pub timestamp: u128,    // 添加 pub 使字段公开
     pub data: String,
@@ -21,7 +22,9 @@ impl Block {
     pub fn get_hash(&self) -> String {
         self.hash.clone()
     }
-
+    pub fn get_prev_hash(&self) -> String {
+        self.prev_block_hash.clone()
+    }
     /// NewBlock creates and returns Block
     pub fn new_block(data: String, prev_block_hash: String) -> Result<Block> {
         let timestamp = SystemTime::now()
@@ -84,5 +87,17 @@ impl Block {
         let d = Duration::from_millis(self.timestamp as u64);
         let datetime = DateTime::<Utc>::from(UNIX_EPOCH + d);
         datetime.format("%Y-%m-%d %H:%M:%S").to_string()
+    }
+}
+
+
+impl fmt::Display for Block {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "时间戳: {}", self.get_readable_time())?;
+        writeln!(f, "数据: {}", self.data)?;
+        writeln!(f, "前一个区块哈希: {}", self.prev_block_hash)?;
+        writeln!(f, "当前区块哈希: {}", self.hash)?;
+        writeln!(f, "工作量证明 Nonce: {}", self.nonce)?;
+        Ok(())
     }
 }
