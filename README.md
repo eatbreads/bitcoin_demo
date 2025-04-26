@@ -1,6 +1,3 @@
-好的，我来帮你创建一个 README.md 文件，介绍你的区块链项目：
-
-```markdown:c:\Users\18526\Desktop\rust大作业\blockchain\README.md
 # Rust 区块链实现
 
 这是一个用 Rust 实现的简单区块链系统，用于学习区块链的基本概念。
@@ -11,6 +8,17 @@
 - 工作量证明 (PoW) 机制
 - 持久化存储
 - 命令行界面
+
+
+## 阶段性导航
+### 加入工作量证明
+([eb822486](https://github.com/eatbreads/bitcoin_demo/commit/eb822486))
+
+
+### 加入数据持久化和命令行交互
+([8880dd2](https://github.com/eatbreads/bitcoin_demo/commit/8880dd2))
+eb822486
+
 
 ## 使用方法
 
@@ -53,6 +61,3 @@ cargo run -- --help
 - 确保运行环境已安装 Rust 和 Cargo
 - 首次运行会自动创建创世区块
 - 所有数据会持久化保存
-```
-
-这个 README 文件包含了项目的基本信息、使用方法和结构说明，可以帮助其他人了解和使用你的项目。
