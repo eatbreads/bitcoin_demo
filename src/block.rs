@@ -98,11 +98,15 @@ impl Block {
 
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "时间戳: {}", self.get_readable_time())?;
-        writeln!(f, "数据: {:#?}", self.transactions)?;
-        writeln!(f, "前一个区块哈希: {}", self.prev_block_hash)?;
-        writeln!(f, "当前区块哈希: {}", self.hash)?;
-        writeln!(f, "工作量证明 Nonce: {}", self.nonce)?;
-        Ok(())
+        writeln!(f, "Block [")?;
+        writeln!(f, "  时间: {}", self.get_readable_time())?;
+        writeln!(f, "  交易列表:")?;
+        for (i, tx) in self.transactions.iter().enumerate() {
+            writeln!(f, "  {}. {}", i + 1, tx)?;
+        }
+        writeln!(f, "  前区块哈希: {}", self.prev_block_hash)?;
+        writeln!(f, "  当前哈希: {}", self.hash)?;
+        writeln!(f, "  Nonce: {}", self.nonce)?;
+        write!(f, "]")
     }
 }

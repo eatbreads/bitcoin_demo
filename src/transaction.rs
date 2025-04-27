@@ -5,7 +5,7 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use failure::format_err;
 use serde::{Deserialize, Serialize};
-
+use std::fmt;
 
 const SUBSIDY: i32 = 10;
 
@@ -116,7 +116,7 @@ impl Transaction {
     /// IsCoinbase checks whether the transaction is coinbase
     pub fn is_coinbase(&self) -> bool {
         self.vin.len() == 1 && self.vin[0].txid.is_empty() && self.vin[0].vout == -1
-    }
+        }
 }
 
 impl TXInput {
@@ -130,5 +130,35 @@ impl TXOutput {
     /// CanBeUnlockedWith checks if the output can be unlocked with the provided data
     pub fn can_be_unlock_with(&self, unlockingData: &str) -> bool {
         self.script_pub_key == unlockingData
+    }
+}
+
+impl fmt::Display for Transaction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "Transaction [{}{}..]", &self.id[..6], if self.id.len() > 6 {"..."} else {""})?;
+        
+        if self.is_coinbase() {
+            writeln!(f, "  Coinbase Transaction")?;
+            writeln!(f, "  Input: Newly Generated Coins")?;
+        } else {
+            writeln!(f, "  Inputs:")?;
+            for (i, input) in self.vin.iter().enumerate() {
+                writeln!(f, "    {}. From TX: [{}{}]", 
+                    i, 
+                    &input.txid[..6], 
+                    if input.txid.len() > 6 {"..."} else {""}
+                )?;
+                writeln!(f, "       Output Index: {}", input.vout)?;
+                writeln!(f, "       From Address: {}", input.script_sig)?;
+            }
+        }
+        
+        writeln!(f, "  Outputs:")?;
+        for (i, output) in self.vout.iter().enumerate() {
+            writeln!(f, "    {}. Amount: {} coins", i, output.value)?;
+            writeln!(f, "       To Address: {}", output.script_pub_key)?;
+        }
+        
+        Ok(())
     }
 }

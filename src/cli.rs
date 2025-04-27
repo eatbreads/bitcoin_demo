@@ -54,7 +54,7 @@ impl Cli {
         if let Some(_) = matches.subcommand_matches("printchain") {
             let bc = Blockchain::new()?;
             for b in bc.iter() {
-                println!("block: {:#?}", b);
+                println!("block: {}", b);
             }
         }
         if let Some(ref matches) = matches.subcommand_matches("createblockchain") {
