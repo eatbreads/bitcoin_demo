@@ -1,4 +1,5 @@
 use super::*;
+use crate::transaction::Transaction;
 use bincode::serialize;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
@@ -7,12 +8,12 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt;  // 添加这行
 
-const TARGET_HEXS: usize = 6;
+const TARGET_HEXS: usize = 5;
 /// Block keeps block headers
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Block {
     pub timestamp: u128,    // 添加 pub 使字段公开
-    pub data: String,
+    pub transactions: Vec<Transaction>,
     pub prev_block_hash: String,
     pub hash: String,
     pub nonce: i32,
@@ -25,15 +26,19 @@ impl Block {
     pub fn get_prev_hash(&self) -> String {
         self.prev_block_hash.clone()
     }
+
+    pub fn get_transaction(&self) -> &Vec<Transaction> {
+        &self.transactions
+    }
     /// NewBlock creates and returns Block
-    pub fn new_block(data: String, prev_block_hash: String) -> Result<Block> {
+    pub fn new_block(transactions: Vec<Transaction>, prev_block_hash: String) -> Result<Block> {
         let timestamp = SystemTime::now()
            .duration_since(SystemTime::UNIX_EPOCH)?
            .as_millis();
         
         let mut block = Block {
             timestamp,
-            data,
+            transactions,
             prev_block_hash,
             hash: String::new(),
             nonce: 0,
@@ -43,11 +48,11 @@ impl Block {
     }
 
     /// NewGenesisBlock creates and returns genesis Block
-    pub fn new_genesis_block() -> Block {
-        Block::new_block(String::from("生成创世块"), String::new()).unwrap()
+    pub fn new_genesis_block(coinbase: Transaction) -> Block {
+        Block::new_block(vec![coinbase], String::new()).unwrap()
     }
     fn run_proof_of_work(&mut self) -> Result<()> {
-        println!("正在挖掘的区块包含\"{}\"", self.data);
+        println!("正在挖掘的区块包含\"{:#?}\"\n", self.transactions);
         while !self.validate()? {
             self.nonce += 1;
         }
@@ -62,7 +67,7 @@ impl Block {
     fn prepare_hash_data(&self) -> Result<Vec<u8>> {
         let content = (
             self.prev_block_hash.clone(),
-            self.data.clone(),
+            self.transactions.clone(),
             self.timestamp,
             TARGET_HEXS,
             self.nonce,
@@ -94,7 +99,7 @@ impl Block {
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "时间戳: {}", self.get_readable_time())?;
-        writeln!(f, "数据: {}", self.data)?;
+        writeln!(f, "数据: {:#?}", self.transactions)?;
         writeln!(f, "前一个区块哈希: {}", self.prev_block_hash)?;
         writeln!(f, "当前区块哈希: {}", self.hash)?;
         writeln!(f, "工作量证明 Nonce: {}", self.nonce)?;
