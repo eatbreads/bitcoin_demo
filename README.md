@@ -8,6 +8,7 @@
 - 工作量证明 (PoW) 机制
 - 持久化存储
 - 命令行界面
+- 实现交易和发送币
 
 
 ## 开发阶段
@@ -40,19 +41,29 @@ cargo build
 
 ### 运行命令
 
-1. 添加新区块：
+1. 创建区块链,并且创世块奖励给alice：
 ```bash
-cargo run -- addblock "区块数据"
+cargo run createblockchain Alice
 ```
 
 2. 打印区块链：
 ```bash
-cargo run -- printchain
+cargo run printchain
 ```
 
 3. 查看帮助：
 ```bash
-cargo run -- --help
+cargo run help
+```
+
+4. 查询余额
+```bash
+cargo run getbalance Alice
+```
+
+5. 转账
+```bash
+cargo run send Alice Bob 10
 ```
 
 ## 项目结构
@@ -61,7 +72,7 @@ cargo run -- --help
 - `src/blockchain.rs`: 区块链核心功能
 - `src/cli.rs`: 命令行界面
 - `src/main.rs`: 程序入口
-
+- `src/transactions.rs`: 交易相关
 ## 数据存储
 
 区块链数据存储在 `data/blockchain` 目录下，使用 sled 嵌入式数据库。
@@ -69,5 +80,4 @@ cargo run -- --help
 ## 注意事项
 
 - 确保运行环境已安装 Rust 和 Cargo
-- 首次运行会自动创建创世区块
 - 所有数据会持久化保存
