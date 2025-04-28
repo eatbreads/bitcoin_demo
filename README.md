@@ -24,7 +24,11 @@
    - 使用 sled 实现数据持久化
    - 添加命令行交互界面
    - 实现区块链遍历功能
-
+3. part3: Persistence and CLI `加入交易和发送币`  
+   [commit 1876783](https://github.com/eatbreads/bitcoin_demo/tree/1876783)
+   - 使用 sled 实现数据持久化
+   - 添加命令行交互界面
+   - 实现区块链遍历功能
 
 ## 使用方法
 
