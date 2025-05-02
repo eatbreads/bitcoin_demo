@@ -31,6 +31,14 @@
    - 添加命令行交互界面
    - 实现区块链遍历功能
 
+4. part4: 钱包系统 `钱包系统`
+   [commit abb226b](https://github.com/eatbreads/bitcoin_demo/tree/abb226b)
+   - 实现钱包系统
+   - 实现交易和发送币
+   - 实现钱包余额查询
+   - 实现钱包地址生成
+
+
 ## 使用方法
 
 ### 构建项目
