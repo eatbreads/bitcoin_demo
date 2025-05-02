@@ -92,6 +92,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitcoin_hashes"
+version = "0.7.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b375d62f341cef9cd9e77793ec8f1db3fc9ce2e4d57e982c8fe697a2c16af3b6"
+
+[[package]]
+name = "bitcoincash-addr"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad79afbfd27efc52fc928b198a365a7ee9da8d881a18c16d88764880b675e543"
+dependencies = [
+ "bitcoin_hashes",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -111,11 +126,13 @@ name = "blockchain"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "bitcoincash-addr",
  "chrono",
  "clap",
  "env_logger",
  "failure",
  "log",
+ "rand 0.4.6",
  "rust-crypto",
  "serde",
  "sha2",

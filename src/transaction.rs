@@ -1,6 +1,8 @@
 use super::*;
 use crate::blockchain::*;
+use crate::wallets::*;
 use bincode::serialize;
+use bitcoincash_addr::Address;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use failure::format_err;
