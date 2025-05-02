@@ -16,7 +16,8 @@ const SUBSIDY: i32 = 10;
 pub struct TXInput {
     pub txid: String,
     pub vout: i32,
-    pub script_sig: String,
+    pub signature: String,
+    pub pub_key: Vec<u8>,
 }
 
 
@@ -24,7 +25,7 @@ pub struct TXInput {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TXOutput {
     pub value: i32,
-    pub script_pub_key: String,
+    pub pub_key_hash: Vec<u8>,
 }
 
 
@@ -42,8 +43,22 @@ impl Transaction {
     pub fn new_UTXO(from: &str, to: &str, amount: i32, bc: &Blockchain) -> Result<Transaction> {
         info!("new UTXO Transaction from: {} to: {}", from, to);
         let mut vin: Vec<TXInput> = Vec::new();
+
+
+        let wallets = Wallets::new()?;
+        let e = Err(format_err!("wallet not found"));
+        let wallet = match wallets.get_wallet(from) {
+            Some(w) => w,
+            None => return e,
+        };
+
+        let mut pub_key_hash = wallet.public_key.clone();
+        hash_pub_key(&mut pub_key_hash);
+
+
+
         //i32是剩余价值,acc_v.1是剩余的utxo,string是txid
-        let acc_v: (i32, std::collections::HashMap<String, Vec<i32>>) = bc.find_spendable_outputs(from, amount);
+        let acc_v: (i32, std::collections::HashMap<String, Vec<i32>>) = bc.find_spendable_outputs(&pub_key_hash, amount);
 
         if acc_v.0 < amount {
             error!("Not Enough balance");
@@ -58,21 +73,16 @@ impl Transaction {
                 let input = TXInput {
                     txid: tx.0.clone(),
                     vout: out,
-                    script_sig: String::from(from),
+                    signature: String::new(),
+                    pub_key: wallet.public_key.clone(),
                 };
                 vin.push(input);//这边把全部的utxo都拿出来了
             }
         }
         //acc_v是剩余价值,acc_v.1是剩余的utxo
-        let mut vout = vec![TXOutput {
-            value: amount,
-            script_pub_key: String::from(to),
-        }];
+        let mut vout = vec![TXOutput::new(amount, to.to_string())?];
         if acc_v.0 > amount {
-            vout.push(TXOutput {
-                value: acc_v.0 - amount,
-                script_pub_key: String::from(from),
-            })
+            vout.push(TXOutput::new(acc_v.0 - amount, from.to_string())?)
         }
 
         let mut tx = Transaction {
@@ -94,13 +104,11 @@ impl Transaction {
             id: String::new(),
             vin: vec![TXInput {
                 txid: String::new(),
-                vout: -1,           //表示没有上一个交易的输出
-                script_sig: data,
+                vout: -1,
+                signature: String::new(),
+                pub_key: Vec::from(data.as_bytes()),
             }],
-            vout: vec![TXOutput {
-                value: SUBSIDY,   //矿工奖励
-                script_pub_key: to,
-            }],
+            vout: vec![TXOutput::new(SUBSIDY, to)?],
         };
         tx.set_id()?;
         Ok(tx)
@@ -120,47 +128,71 @@ impl Transaction {
         self.vin.len() == 1 && self.vin[0].txid.is_empty() && self.vin[0].vout == -1
         }
 }
-
 impl TXInput {
-    /// CanUnlockOutputWith checks whether the address initiated the transaction
-    pub fn can_unlock_output_with(&self, unlockingData: &str) -> bool {
-        self.script_sig == unlockingData
+    /// UsesKey checks whether the address initiated the transaction
+    pub fn uses_key(&self, pub_key_hash: &[u8]) -> bool {
+        let mut pubkeyhash = self.pub_key.clone();
+        hash_pub_key(&mut pubkeyhash);
+        pubkeyhash == pub_key_hash
     }
 }
-
 impl TXOutput {
-    /// CanBeUnlockedWith checks if the output can be unlocked with the provided data
-    pub fn can_be_unlock_with(&self, unlockingData: &str) -> bool {
-        self.script_pub_key == unlockingData
+    /// IsLockedWithKey checks if the output can be used by the owner of the pubkey
+    pub fn is_locked_with_key(&self, pub_key_hash: &[u8]) -> bool {
+        self.pub_key_hash == pub_key_hash
     }
-}
-
-impl fmt::Display for Transaction {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "Transaction [{}{}..]", &self.id[..6], if self.id.len() > 6 {"..."} else {""})?;
-        
-        if self.is_coinbase() {
-            writeln!(f, "  Coinbase Transaction")?;
-            writeln!(f, "  Input: Newly Generated Coins")?;
-        } else {
-            writeln!(f, "  Inputs:")?;
-            for (i, input) in self.vin.iter().enumerate() {
-                writeln!(f, "    {}. From TX: [{}{}]", 
-                    i, 
-                    &input.txid[..6], 
-                    if input.txid.len() > 6 {"..."} else {""}
-                )?;
-                writeln!(f, "       Output Index: {}", input.vout)?;
-                writeln!(f, "       From Address: {}", input.script_sig)?;
-            }
-        }
-        
-        writeln!(f, "  Outputs:")?;
-        for (i, output) in self.vout.iter().enumerate() {
-            writeln!(f, "    {}. Amount: {} coins", i, output.value)?;
-            writeln!(f, "       To Address: {}", output.script_pub_key)?;
-        }
-        
+    /// Lock signs the output
+    fn lock(&mut self, address: &str) -> Result<()> {
+        let pub_key_hash = Address::decode(address).unwrap().body;
+        debug!("lock: {}", address);
+        self.pub_key_hash = pub_key_hash;
         Ok(())
     }
+
+    pub fn new(value: i32, address: String) -> Result<Self> {
+        let mut txo = TXOutput {
+            value,
+            pub_key_hash: Vec::new(),
+        };
+        txo.lock(&address)?;
+        Ok(txo)
+    }
 }
+
+
+// impl TXOutput {
+//     /// CanBeUnlockedWith checks if the output can be unlocked with the provided data
+//     pub fn can_be_unlock_with(&self, unlockingData: &str) -> bool {
+//         self.script_pub_key == unlockingData
+//     }
+// }
+
+// impl fmt::Display for Transaction {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         writeln!(f, "Transaction [{}{}..]", &self.id[..6], if self.id.len() > 6 {"..."} else {""})?;
+        
+//         if self.is_coinbase() {
+//             writeln!(f, "  Coinbase Transaction")?;
+//             writeln!(f, "  Input: Newly Generated Coins")?;
+//         } else {
+//             writeln!(f, "  Inputs:")?;
+//             for (i, input) in self.vin.iter().enumerate() {
+//                 writeln!(f, "    {}. From TX: [{}{}]", 
+//                     i, 
+//                     &input.txid[..6], 
+//                     if input.txid.len() > 6 {"..."} else {""}
+//                 )?;
+//                 writeln!(f, "       Output Index: {}", input.vout)?;
+//                 writeln!(f, "       From Address: {}", input.script_sig)?;
+//             }
+//         }
+        
+//         writeln!(f, "  Outputs:")?;
+//         for (i, output) in self.vout.iter().enumerate() {
+//             writeln!(f, "    {}. Amount: {} coins", i, output.value)?;
+//             writeln!(f, "       To Address: {}", output.script_pub_key)?;
+//         }
+        
+//         Ok(())
+//     }
+// }

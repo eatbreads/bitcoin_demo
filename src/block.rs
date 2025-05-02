@@ -96,17 +96,17 @@ impl Block {
 }
 
 
-impl fmt::Display for Block {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "Block [")?;
-        writeln!(f, "  时间: {}", self.get_readable_time())?;
-        writeln!(f, "  交易列表:")?;
-        for (i, tx) in self.transactions.iter().enumerate() {
-            writeln!(f, "  {}. {}", i + 1, tx)?;
-        }
-        writeln!(f, "  前区块哈希: {}", self.prev_block_hash)?;
-        writeln!(f, "  当前哈希: {}", self.hash)?;
-        writeln!(f, "  Nonce: {}", self.nonce)?;
-        write!(f, "]")
-    }
-}
+// impl fmt::Display for Block {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         writeln!(f, "Block [")?;
+//         writeln!(f, "  时间: {}", self.get_readable_time())?;
+//         writeln!(f, "  交易列表:")?;
+//         for (i, tx) in self.transactions.iter().enumerate() {
+//             writeln!(f, "  {}. {}", i + 1, tx)?;
+//         }
+//         writeln!(f, "  前区块哈希: {}", self.prev_block_hash)?;
+//         writeln!(f, "  当前哈希: {}", self.hash)?;
+//         writeln!(f, "  Nonce: {}", self.nonce)?;
+//         write!(f, "]")
+//     }
+// }

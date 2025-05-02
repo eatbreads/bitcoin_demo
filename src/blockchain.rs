@@ -74,12 +74,12 @@ impl Blockchain {
         }
     }
     ///仅仅把find_unspent_transactions的返回的tx提纯,直接返回UTXO
-    pub fn find_UTXO(&self, address: &str) -> Vec<TXOutput> {
+    pub fn find_UTXO(&self, pub_key_hash: &[u8]) -> Vec<TXOutput> {
         let mut utxos: Vec<TXOutput> = Vec::<TXOutput>::new();
-        let unspend_TXs: Vec<Transaction> = self.find_unspent_transactions(address);
+        let unspend_TXs: Vec<Transaction> = self.find_unspent_transactions(pub_key_hash);
         for tx in unspend_TXs {
             for out in &tx.vout {
-                if out.can_be_unlock_with(&address) {
+                if out.is_locked_with_key(pub_key_hash) {
                     utxos.push(out.clone());
                 }
             }
@@ -90,7 +90,7 @@ impl Blockchain {
     /// FindUnspentTransactions returns a list of transactions containing unspent outputs
     pub fn find_spendable_outputs(
         &self,
-        address: &str,
+        pub_key_hash: &[u8],
         amount: i32,
     ) -> (i32, HashMap<String, Vec<i32>>) {     
         //返回值未元组,第一个参数是已经累加的金额,第二个参数是一个map,key是txid,value是一个数组,数组里面是这个txid对应的output的index
@@ -101,11 +101,11 @@ impl Blockchain {
         // })
         let mut unspent_outputs: HashMap<String, Vec<i32>> = HashMap::new();
         let mut accumulated = 0;
-        let unspend_TXs = self.find_unspent_transactions(address);
+        let unspend_TXs = self.find_unspent_transactions(pub_key_hash);
 
         for tx in unspend_TXs {
             for index in 0..tx.vout.len() {
-                if tx.vout[index].can_be_unlock_with(address) && accumulated < amount {
+                if tx.vout[index].is_locked_with_key(pub_key_hash) && accumulated < amount {
                     match unspent_outputs.get_mut(&tx.id) {
                         Some(v) => v.push(index as i32),
                         None => {
@@ -124,7 +124,7 @@ impl Blockchain {
     }
 
     ///如果这个交易中有未花费的output,就会返回这个交易
-    fn find_unspent_transactions(&self, address: &str) -> Vec<Transaction> {
+    fn find_unspent_transactions(&self, pub_key_hash: &[u8]) -> Vec<Transaction> {
         //key为tx的id,value式为一个数组,数组里面是这个tx的output的index
         //结构类似这样
         //{
@@ -147,14 +147,14 @@ impl Blockchain {
                         }
                     }
                     //用地址鉴权,通过了就推入返回值
-                    if tx.vout[index].can_be_unlock_with(address) {
+                    if tx.vout[index].is_locked_with_key(pub_key_hash) {
                         unspend_TXs.push(tx.to_owned())
                     }
                 }
                 //然后这里才推入vin,然后进入下一层循环之后,进入一个相对旧的区块,再用这个vin去判断他的vout有没有花费
                 if !tx.is_coinbase() {//如果是矿工的奖励,就跳过,不需要被记录
                     for i in &tx.vin {  //遍历全部的vin
-                        if i.can_unlock_output_with(address) {
+                        if i.uses_key(pub_key_hash){
                             match spent_TXOs.get_mut(&i.txid) {
                                 //如果这个交易已经记录过了,直接把他的vec新增即可
                                 Some(v) => {
