@@ -38,6 +38,13 @@
    - 实现钱包余额查询
    - 实现钱包地址生成
 
+   
+5. part5: 交易改进 `交易系统优化`
+   [commit 79f38cb](https://github.com/eatbreads/bitcoin_demo/tree/79f38cb0eebb4f6fc561e7fb0eecfcdbd875e1ef)
+   - 改进交易验证机制
+   - 优化 UTXO 管理
+   - 增强交易安全性
+   - 完善交易签名系统
 
 ## 使用方法
 
