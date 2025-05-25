@@ -53,32 +53,86 @@
 ```bash
 cargo build
 ```
+### 基本命令使用
 
-### 运行命令
-
-1. 创建区块链,并且创世块奖励给alice：
+1. 创建钱包：
 ```bash
-cargo run createblockchain Alice
+cargo run createwallet
+```
+输出示例：`创建钱包地址: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa`
+
+2. 列出所有钱包地址：
+```bash
+cargo run listaddresses
 ```
 
-2. 打印区块链：
+3. 创建区块链（需要指定接收创世区块奖励的钱包地址）：
+```bash
+cargo run createblockchain <钱包地址>
+```
+
+4. 查看钱包余额：
+```bash
+cargo run getbalance <钱包地址>
+```
+
+5. 转账交易：
+```bash
+cargo run send <发送方地址> <接收方地址> <金额>
+```
+添加 `-m` 参数可以立即由发送方进行挖矿：
+```bash
+cargo run send <发送方地址> <接收方地址> <金额> -m
+```
+
+6. 打印整个区块链：
 ```bash
 cargo run printchain
 ```
 
-3. 查看帮助：
+7. 重建 UTXO 集合：
 ```bash
-cargo run help
+cargo run reindex
 ```
 
-4. 查询余额
+8. 启动节点服务器：
 ```bash
-cargo run getbalance Alice
+cargo run startnode <端口号>
 ```
 
-5. 转账
+9. 启动挖矿节点：
 ```bash
-cargo run send Alice Bob 10
+cargo run startminer <端口号> <奖励接收地址>
+```
+
+### 使用示例
+
+1. 创建两个钱包并记录地址：
+```bash
+cargo run createwallet
+cargo run createwallet
+```
+
+2. 使用第一个地址创建区块链：
+```bash
+cargo run createblockchain <第一个钱包地址>
+```
+
+3. 查看两个钱包的余额：
+```bash
+cargo run getbalance <第一个钱包地址>
+cargo run getbalance <第二个钱包地址>
+```
+
+4. 从第一个钱包向第二个钱包转账：
+```bash
+cargo run send <第一个钱包地址> <第二个钱包地址> 10 -m
+```
+
+5. 再次查看余额确认交易：
+```bash
+cargo run getbalance <第一个钱包地址>
+cargo run getbalance <第二个钱包地址>
 ```
 
 ## 项目结构

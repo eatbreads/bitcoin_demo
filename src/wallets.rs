@@ -18,7 +18,7 @@ pub struct Wallet {
 
 impl Wallet {
     fn new() -> Self {
-        let mut key: [u8; 64] = [0; 64];
+        let mut key: [u8; 32] = [0; 32];
         let mut rand = rand::OsRng::new().unwrap();//这是操作系统级别的随机数
         rand.fill_bytes(&mut key);//填充这个随机数到key中
         //然后用这个随机数生成公钥和私钥,ed25519是一种椭圆曲线算法
@@ -31,7 +31,7 @@ impl Wallet {
             public_key,
         }
     }
-    fn get_address(&self) -> String {
+    pub fn get_address(&self) -> String {
         let mut pub_hash: Vec<u8> = self.public_key.clone();
         hash_pub_key(&mut pub_hash);    //对这个公钥进行两次哈希
         let address = Address {
@@ -103,6 +103,7 @@ impl Wallets {
         }
 
         db.flush()?;
+        drop(db);
         Ok(())
     }
 }

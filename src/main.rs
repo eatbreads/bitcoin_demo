@@ -4,6 +4,7 @@ mod blockchain;
 mod cli;
 mod transaction;
 mod utxoset;
+mod server;
 mod wallets;
 
 #[macro_use]
