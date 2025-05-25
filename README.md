@@ -45,6 +45,12 @@
    - 优化 UTXO 管理
    - 增强交易安全性
    - 完善交易签名系统
+6. part6: 分布式网络 `网络功能实现`
+   [commit 0e356fd](https://github.com/eatbreads/bitcoin_demo/tree/0e356fd)
+   - 实现节点间通信
+   - 添加区块同步功能
+   - 实现交易广播
+   - 支持多节点挖矿
 
 ## 使用方法
 
