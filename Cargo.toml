@@ -5,7 +5,8 @@ edition = "2024"
 
 
 [dependencies]
-
+actix-web = "4.0"
+serde_json = "1.0"
 sha2 = "0.9.1"
 rust-crypto = "^0.2"
 
