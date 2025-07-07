@@ -12,6 +12,7 @@ extern crate log;
 
 use actix_web::{web, App, HttpServer};
 use env_logger::Env;
+use actix_cors::Cors;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -23,8 +24,9 @@ async fn main() -> std::io::Result<()> {
     println!("HTTP server starting at http://localhost:8080");
 
     // 启动HTTP服务器
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
+            .wrap(Cors::permissive()) // 添加这行来启用CORS
             .route("/wallet/create", web::post().to(api::create_wallet))
             .route("/wallet/balance/{address}", web::get().to(api::get_balance))
             .route("/transaction/send", web::post().to(api::send_transaction))
