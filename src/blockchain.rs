@@ -1,7 +1,6 @@
 use super::*;
 use crate::block::*;
 use crate::transaction::*;
-use std::fmt;
 use failure::format_err;
 use bincode::{deserialize, serialize};
 use sled;

@@ -1,0 +1,33 @@
+@startuml
+title 工作量证明挖矿流程
+
+participant Blockchain
+participant Block
+participant "Proof of Work" as PoW
+participant "Hash Function" as Hash
+participant Database as "Sled DB"
+
+Blockchain -> Block: new_block(transactions, prev_hash, height)
+Block -> Block: set initial values
+Block -> PoW: run_proof_of_work()
+
+loop until valid hash found
+    PoW -> PoW: increment nonce
+    PoW -> Hash: calculate_hash(block_data + nonce)
+    Hash -> PoW: return hash
+    PoW -> PoW: check if hash meets difficulty
+    
+    alt hash meets difficulty (starts with required zeros)
+        PoW -> Block: return (nonce, hash)
+        note right: 找到有效哈希，挖矿成功
+    else hash doesn't meet difficulty
+        note right: 继续尝试下一个nonce
+    end
+end
+
+Block -> Block: set final nonce and hash
+Block -> Blockchain: return mined block
+Blockchain -> Database: save block
+Blockchain -> Database: update blockchain state
+
+@enduml

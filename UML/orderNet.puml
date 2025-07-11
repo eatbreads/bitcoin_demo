@@ -1,0 +1,43 @@
+@startuml
+title 网络节点通信流程
+
+participant "Node A" as NodeA
+participant "Server A" as ServerA
+participant "Server B" as ServerB
+participant "Node B" as NodeB
+participant "Blockchain A" as BCA
+participant "Blockchain B" as BCB
+
+NodeA -> ServerA: start_server()
+ServerA -> ServerA: listen on port
+
+NodeB -> ServerB: start_server()
+ServerB -> ServerB: listen on port
+
+ServerA -> ServerB: connect
+ServerA -> ServerB: Version message
+ServerB -> ServerA: Version response
+ServerB -> ServerA: Addr message (known nodes)
+
+alt New Transaction
+    NodeA -> ServerA: new transaction
+    ServerA -> BCA: add_block([transaction])
+    BCA -> BCA: mine_block()
+    ServerA -> ServerB: Inv message (new block)
+    ServerB -> ServerA: GetData message
+    ServerA -> ServerB: Block message
+    ServerB -> BCB: add_block(received_block)
+    BCB -> BCB: verify_block()
+    ServerB -> NodeB: block added
+end
+
+alt Request Blocks
+    ServerB -> ServerA: GetBlocks message
+    ServerA -> BCA: get_block_hashes()
+    ServerA -> ServerB: Inv message (block hashes)
+    ServerB -> ServerA: GetData message
+    ServerA -> ServerB: Block messages
+    ServerB -> BCB: sync_blocks()
+end
+
+@enduml

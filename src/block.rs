@@ -62,19 +62,57 @@ impl Block {
     pub fn new_genesis_block(coinbase: Transaction) -> Block {
         Block::new_block(vec![coinbase], String::new(), 0).unwrap()
     }
+    // fn run_proof_of_work(&mut self) -> Result<()> {
+    //     println!("正在挖掘的区块包含\"{:#?}\"\n", self.transactions);
+    //     while !self.validate()? {
+    //         self.nonce += 1;
+    //     }
+
+    //     let data = self.prepare_hash_data()?;
+    //     let mut hasher = Sha256::new();
+    //     hasher.input(&data[..]);
+    //     self.hash = hasher.result_str();
+    //     Ok(())
+    // }
     fn run_proof_of_work(&mut self) -> Result<()> {
-        println!("正在挖掘的区块包含\"{:#?}\"\n", self.transactions);
+        println!("⛏️  开始挖矿...");
+        println!("📦 区块信息:");
+        println!("   📏 高度: {}", self.height);
+        println!("   📊 交易数量: {}", self.transactions.len());
+        println!("   ⏰ 时间戳: {}", self.get_readable_time());
+        
+        // 美化显示交易信息
+        for (i, tx) in self.transactions.iter().enumerate() {
+            if tx.is_coinbase() {
+                println!("   💰 交易 {}: Coinbase奖励 ({}币)", i + 1, crate::transaction::SUBSIDY);
+            } else {
+                println!("   💸 交易 {}: ID={}", i + 1, &tx.id[..8]);
+            }
+        }
+        
+        print!("🔍 正在寻找合适的Nonce");
+        let mut attempts = 0;
         while !self.validate()? {
             self.nonce += 1;
+            attempts += 1;
+            if attempts % 10000 == 0 {
+                print!(".");
+            }
         }
-
+        println!();
+        
         let data = self.prepare_hash_data()?;
         let mut hasher = Sha256::new();
         hasher.input(&data[..]);
         self.hash = hasher.result_str();
+        
+        println!("✅ 挖矿成功!");
+        println!("   🎲 Nonce: {}", self.nonce);
+        println!("   🔗 区块哈希: {}...", &self.hash[..16]);
+        println!();
+        
         Ok(())
     }
-
     fn hash_transactions(&self) -> Result<Vec<u8>> {
         let mut transactions = Vec::new();
         for tx in &self.transactions {
@@ -116,20 +154,47 @@ impl Block {
 }
 
 
-// impl fmt::Display for Block {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         writeln!(f, "Block [")?;
-//         writeln!(f, "  时间: {}", self.get_readable_time())?;
-//         writeln!(f, "  交易列表:")?;
-//         for (i, tx) in self.transactions.iter().enumerate() {
-//             writeln!(f, "  {}. {}", i + 1, tx)?;
-//         }
-//         writeln!(f, "  前区块哈希: {}", self.prev_block_hash)?;
-//         writeln!(f, "  当前哈希: {}", self.hash)?;
-//         writeln!(f, "  Nonce: {}", self.nonce)?;
-//         write!(f, "]")
-//     }
-// }
+
+impl fmt::Display for Block {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "╭─────────────────────────────────────────────────────────────╮")?;
+        writeln!(f, "│                      🧱 区块信息 🧱                        │")?;
+        writeln!(f, "├─────────────────────────────────────────────────────────────┤")?;
+        writeln!(f, "│ 📏 区块高度: {:>46} │", self.height)?;
+        writeln!(f, "│ ⏰ 时间戳:   {:>46} │", self.get_readable_time())?;
+        writeln!(f, "│ 📊 交易数量: {:>46} │", self.transactions.len())?;
+        writeln!(f, "│ 🎲 Nonce:    {:>46} │", self.nonce)?;
+        writeln!(f, "├─────────────────────────────────────────────────────────────┤")?;
+        writeln!(f, "│ ⬅️  前区块哈希:                                              │")?;
+        let prev_hash_display = if self.prev_block_hash.is_empty() { 
+            "🌟 [创世区块]".to_string() 
+        } else { 
+            self.prev_block_hash.clone() 
+        };
+        writeln!(f, "│ {:>59} │", prev_hash_display)?;
+        writeln!(f, "├─────────────────────────────────────────────────────────────┤")?;
+        writeln!(f, "│ 🆔 当前哈希:                                                │")?;
+        writeln!(f, "│ {:>59} │", self.hash)?;
+        writeln!(f, "├─────────────────────────────────────────────────────────────┤")?;
+        writeln!(f, "│                      💰 交易列表 💰                        │")?;
+        writeln!(f, "├─────────────────────────────────────────────────────────────┤")?;
+        
+        for (i, tx) in self.transactions.iter().enumerate() {
+            writeln!(f, "│ 📋 交易 {}: {:>49} │", i + 1, "")?;
+            let tx_str = format!("{}", tx);
+            for line in tx_str.lines() {
+                let display_line = if line.len() > 57 { &line[..57] } else { line };
+                writeln!(f, "│   {:57} │", display_line)?;
+            }
+            if i < self.transactions.len() - 1 {
+                writeln!(f, "├─────────────────────────────────────────────────────────────┤")?;
+            }
+        }
+        
+        writeln!(f, "╰─────────────────────────────────────────────────────────────╯")?;
+        Ok(())
+    }
+}
 struct MergeVu8 {}
 
 impl Merge for MergeVu8 {

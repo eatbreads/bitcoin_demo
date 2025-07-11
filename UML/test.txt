@@ -1,0 +1,38 @@
+.\blockchain.exe createwallet
+.\blockchain.exe createwallet
+.\blockchain.exe createwallet
+
+
+.\blockchain.exe createblockchain 3GfkpV784HA8Dty8jRpivohNeQKSgBiRu9
+
+.\blockchain.exe printchain
+
+.\blockchain.exe getbalance 3GfkpV784HA8Dty8jRpivohNeQKSgBiRu9
+
+.\blockchain.exe getbalance 35iQLjnFGtUcjixqeTsr38xFuLPLHZbt2X
+
+.\blockchain.exe getbalance 3DftniPMWNpcoejWKU14EMXcfeJR1oqZ1s
+
+Alice向Bob发送5币
+.\blockchain.exe send 3GfkpV784HA8Dty8jRpivohNeQKSgBiRu9 35iQLjnFGtUcjixqeTsr38xFuLPLHZbt2X 5 -m
+
+验证交易后余额
+.\blockchain.exe getbalance 3GfkpV784HA8Dty8jRpivohNeQKSgBiRu9
+.\blockchain.exe getbalance 35iQLjnFGtUcjixqeTsr38xFuLPLHZbt2X
+
+Bob向Charlie发送3币
+.\blockchain.exe send 35iQLjnFGtUcjixqeTsr38xFuLPLHZbt2X 3DftniPMWNpcoejWKU14EMXcfeJR1oqZ1s 3 -m
+
+验证所有余额
+.\blockchain.exe getbalance 3GfkpV784HA8Dty8jRpivohNeQKSgBiRu9
+.\blockchain.exe getbalance 35iQLjnFGtUcjixqeTsr38xFuLPLHZbt2X
+.\blockchain.exe getbalance 3DftniPMWNpcoejWKU14EMXcfeJR1oqZ1s
+
+
+.\blockchain.exe printchain
+
+重建UTXO索引
+.\blockchain.exe reindex
+
+启动API服务器
+.\blockchain.exe startnode 3GfkpV784HA8Dty8jRpivohNeQKSgBiRu9

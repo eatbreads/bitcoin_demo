@@ -1,0 +1,46 @@
+@startuml
+title 交易处理流程
+
+actor User
+participant CLI
+participant Wallets
+participant Wallet
+participant Transaction
+participant UTXOSet
+participant Blockchain
+participant Block
+participant Database as "Sled DB"
+
+User -> CLI: send <from> <to> <amount>
+CLI -> Wallets: get_wallet(from)
+Wallets -> CLI: return sender_wallet
+CLI -> UTXOSet: new(blockchain)
+CLI -> Transaction: new_UTXO(wallet, to, amount, utxo_set)
+
+Transaction -> UTXOSet: find_spendable_outputs(pub_key_hash, amount)
+UTXOSet -> Database: query UTXO data
+UTXOSet -> Transaction: return (accumulated, unspent_outputs)
+
+alt sufficient balance
+    Transaction -> Transaction: create inputs from unspent_outputs
+    Transaction -> Transaction: create outputs (to recipient + change)
+    Transaction -> Transaction: set_id()
+    Transaction -> Wallet: sign_transaction()
+    Transaction -> CLI: return signed transaction
+    
+    CLI -> Blockchain: mine_block([transaction])
+    Blockchain -> Block: new_block(transactions, prev_hash, height)
+    Block -> Block: run_proof_of_work()
+    Block -> Blockchain: return mined block
+    Blockchain -> Database: save block
+    
+    Blockchain -> UTXOSet: update(block)
+    UTXOSet -> Database: update UTXO data
+    
+    CLI -> User: transaction successful
+else insufficient balance
+    Transaction -> CLI: return error
+    CLI -> User: insufficient balance
+end
+
+@enduml

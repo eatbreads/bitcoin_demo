@@ -1,0 +1,45 @@
+@startuml
+title API接口调用流程
+
+actor Client
+participant "HTTP Server" as HTTP
+participant API
+participant Wallets
+participant Wallet
+participant Blockchain
+participant UTXOSet
+participant Transaction
+
+== 创建钱包 ==
+Client -> HTTP: POST /wallet
+HTTP -> API: create_wallet()
+API -> Wallets: new()
+Wallets -> Wallet: new()
+Wallet -> Wallet: generate_key_pair()
+Wallet -> API: return address
+API -> HTTP: JSON response
+HTTP -> Client: {"address": "..."}
+
+== 查询余额 ==
+Client -> HTTP: GET /balance/<address>
+HTTP -> API: get_balance(address)
+API -> Blockchain: new()
+API -> UTXOSet: new(blockchain)
+UTXOSet -> UTXOSet: find_UTXO(address)
+UTXOSet -> API: return balance
+API -> HTTP: JSON response
+HTTP -> Client: {"balance": 100}
+
+== 发送交易 ==
+Client -> HTTP: POST /send
+HTTP -> API: send_transaction(SendRequest)
+API -> Wallets: get_wallet(from)
+API -> UTXOSet: new(blockchain)
+API -> Transaction: new_UTXO(wallet, to, amount, utxo_set)
+Transaction -> API: return transaction
+API -> Blockchain: mine_block([transaction])
+Blockchain -> API: return success
+API -> HTTP: JSON response
+HTTP -> Client: {"status": "success"}
+
+@enduml

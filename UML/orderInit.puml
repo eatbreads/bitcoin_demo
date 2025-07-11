@@ -1,0 +1,34 @@
+@startuml
+title 创建钱包和区块链初始化流程
+
+actor User
+participant CLI
+participant Wallets
+participant Wallet
+participant Blockchain
+participant Block
+participant UTXOSet
+participant Database as "Sled DB"
+
+User -> CLI: createwallet
+CLI -> Wallets: new()
+Wallets -> Database: load existing wallets
+Wallets -> Wallet: new()
+Wallet -> Wallet: generate_key_pair()
+Wallet -> Wallets: add wallet
+Wallets -> Database: save wallets
+Wallets -> CLI: return address
+CLI -> User: display address
+
+User -> CLI: createblockchain <address>
+CLI -> Blockchain: create_blockchain(address)
+Blockchain -> Block: new_genesis_block(address)
+Block -> Block: mine_block()
+Blockchain -> Database: save genesis block
+Blockchain -> UTXOSet: new(blockchain)
+UTXOSet -> UTXOSet: reindex()
+UTXOSet -> Database: save UTXO data
+Blockchain -> CLI: return blockchain
+CLI -> User: blockchain created
+
+@enduml

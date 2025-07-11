@@ -23,3 +23,4 @@ bitcoincash-addr = "0.5.2"
 
 rand = "0.4.6"
 merkle-cbt = "0.2.2"
+hex = "0.4"

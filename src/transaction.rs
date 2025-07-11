@@ -10,8 +10,8 @@ use failure::format_err;
 use rand::Rng;  // 用于生成随机数
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-const SUBSIDY: i32 = 10;
+use std::fmt;
+pub const SUBSIDY: i32 = 10;
 /// TXInput represents a transaction input
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TXInput {
@@ -127,6 +127,9 @@ impl Transaction {
     pub fn is_coinbase(&self) -> bool {
         self.vin.len() == 1 && self.vin[0].txid.is_empty() && self.vin[0].vout == -1
     }
+    // pub fn is_coinbase(&self) -> bool {
+    //     self.vin.len() == 1 && self.vin[0].txid.is_empty() && self.vin[0].vout == -1
+    // }
     pub fn verify(&self, prev_TXs: HashMap<String, Transaction>) -> Result<bool> {
         if self.is_coinbase() {
             return Ok(true);
@@ -230,6 +233,26 @@ impl Transaction {
             vout,
         }
     }
+    fn pub_key_hash_to_address(&self, pub_key_hash: &[u8]) -> String {
+        use bitcoincash_addr::{Address, Scheme, HashType};
+        
+        let address = Address {
+            body: pub_key_hash.to_vec(),
+            scheme: Scheme::Base58,
+            hash_type: HashType::Script,
+            ..Default::default()
+        };
+        
+        address.encode().unwrap_or_else(|_| {
+            format!("[❌ 无效地址: {}...]", 
+                if pub_key_hash.len() >= 8 {
+                    hex::encode(&pub_key_hash[..4])
+                } else {
+                    hex::encode(pub_key_hash)
+                }
+            )
+        })
+    }
 }
 // impl TXInput {
 //     /// UsesKey checks whether the address initiated the transaction
@@ -269,32 +292,37 @@ impl TXOutput {
 //     }
 // }
 
-// impl fmt::Display for Transaction {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         writeln!(f, "Transaction [{}{}..]", &self.id[..6], if self.id.len() > 6 {"..."} else {""})?;
+impl fmt::Display for Transaction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "💰 交易ID: {}...{}", 
+            if self.id.len() >= 16 { &self.id[..8] } else { &self.id },
+            if self.id.len() >= 16 { &self.id[self.id.len()-8..] } else { "" }
+        )?;
         
-//         if self.is_coinbase() {
-//             writeln!(f, "  Coinbase Transaction")?;
-//             writeln!(f, "  Input: Newly Generated Coins")?;
-//         } else {
-//             writeln!(f, "  Inputs:")?;
-//             for (i, input) in self.vin.iter().enumerate() {
-//                 writeln!(f, "    {}. From TX: [{}{}]", 
-//                     i, 
-//                     &input.txid[..6], 
-//                     if input.txid.len() > 6 {"..."} else {""}
-//                 )?;
-//                 writeln!(f, "       Output Index: {}", input.vout)?;
-//                 writeln!(f, "       From Address: {}", input.script_sig)?;
-//             }
-//         }
+        if self.is_coinbase() {
+            writeln!(f, "🏆 类型: Coinbase交易 (挖矿奖励)")?;
+            writeln!(f, "✨ 输入: 新生成的币")?;
+        } else {
+            writeln!(f, "🔄 类型: 普通转账交易")?;
+            writeln!(f, "📥 输入:")?;
+            for (i, input) in self.vin.iter().enumerate() {
+                writeln!(f, "  {}. 🔗 来源交易: {}...{}", 
+                    i + 1, 
+                    if input.txid.len() >= 16 { &input.txid[..8] } else { &input.txid },
+                    if input.txid.len() >= 16 { &input.txid[input.txid.len()-8..] } else { "" }
+                )?;
+                writeln!(f, "     📍 输出索引: {}", input.vout)?;
+                writeln!(f, "     🔐 签名长度: {} bytes", input.signature.len())?;
+            }
+        }
         
-//         writeln!(f, "  Outputs:")?;
-//         for (i, output) in self.vout.iter().enumerate() {
-//             writeln!(f, "    {}. Amount: {} coins", i, output.value)?;
-//             writeln!(f, "       To Address: {}", output.script_pub_key)?;
-//         }
+        writeln!(f, "📤 输出:")?;
+        for (i, output) in self.vout.iter().enumerate() {
+            writeln!(f, "  {}. 💎 金额: {} 币", i + 1, output.value)?;
+            let address = self.pub_key_hash_to_address(&output.pub_key_hash);
+            writeln!(f, "     🏠 接收地址: {}", address)?;
+        }
         
-//         Ok(())
-//     }
-// }
+        Ok(())
+    }
+}
