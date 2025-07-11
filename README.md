@@ -62,11 +62,6 @@ cargo build
 
 
 
-          
-好的，我按照你现有的 README 格式来补充内容。以下是需要添加到 README 文件末尾的内容：
-
-```markdown:c:\Users\18526\Desktop\rust大作业\blockchain\README.md
-
 ## 命令行界面详细说明
 
 ### 钱包管理命令
