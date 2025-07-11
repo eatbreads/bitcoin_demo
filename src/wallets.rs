@@ -9,8 +9,8 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sled;
 use std::collections::HashMap;
-
-#[derive(Serialize, Deserialize, Debug,Clone,PartialEq)]
+ 
+#[derive(Serialize,  Deserialize, Debug,Clone,PartialEq)]
 pub struct Wallet {
     pub public_key: Vec<u8>,
     pub secret_key: Vec<u8>,
